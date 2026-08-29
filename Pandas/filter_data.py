@@ -13,3 +13,4 @@ print(df[(df["Marks"] >= 80) & (df["Age"] == 18)])
 print("--------------------")
 
 print(df[df["Age"] > 18])
+
