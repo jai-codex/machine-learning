@@ -21,4 +21,9 @@ print("Variance:", np.var(data))
 
 print("Standard Deviation:", np.std(data))
 
+mean = np.mean(data)
+std = np.std(data)
+
+print("Outliers:", data[abs(data - mean) > 2*std])
+
 plt.show()
