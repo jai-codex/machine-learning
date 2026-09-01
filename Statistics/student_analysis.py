@@ -11,3 +11,7 @@ values, counts = np.unique(data, return_counts=True)
 print("Mode:", values[np.argmax(counts)])
 
 print("Range:", np.max(data) - np.min(data))
+
+print("Variance:", np.var(data))
+
+print("Standard Deviation:", np.std(data))
