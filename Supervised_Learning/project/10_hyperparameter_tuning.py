@@ -1,0 +1,52 @@
+import pandas as pd
+import seaborn as sns
+
+from sklearn.linear_model import LogisticRegression
+from sklearn.model_selection import train_test_split, GridSearchCV
+
+
+# Load dataset
+df = sns.load_dataset("titanic")
+
+# Remove unnecessary columns
+df = df.drop(["deck", "alive"], axis=1)
+
+# Missing values
+df["age"] = df["age"].fillna(df["age"].median())
+df["embarked"] = df["embarked"].fillna(df["embarked"].mode()[0])
+df["embark_town"] = df["embark_town"].fillna(
+    df["embark_town"].mode()[0]
+)
+
+# Features and target
+y = df["survived"]
+X = df.drop("survived", axis=1)
+
+# Encoding
+X = pd.get_dummies(X, drop_first=True)
+
+# Train/test split
+X_train, X_test, y_train, y_test = train_test_split(
+    X,
+    y,
+    test_size=0.2,
+    random_state=42
+)
+
+model = LogisticRegression(max_iter=1000)
+
+param_grid = {
+    "C": [0.01, 0.1, 1, 10, 100]
+}
+
+grid_search = GridSearchCV(
+    model,
+    param_grid,
+    cv=5,
+    scoring="accuracy"
+)
+
+grid_search.fit(X, y)
+
+print("Best Parameters:", grid_search.best_params_)
+print("Best Accuracy:", grid_search.best_score_)
