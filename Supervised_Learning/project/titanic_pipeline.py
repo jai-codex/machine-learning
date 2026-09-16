@@ -1,30 +1,75 @@
-from sklearn.pipeline import Pipeline
-from sklearn.linear_model import LogisticRegression
-from sklearn.model_selection import train_test_split
-from sklearn.preprocessing import StandardScaler
-
-import pandas as pd
 import seaborn as sns
+
+from sklearn.model_selection import train_test_split
+from sklearn.compose import ColumnTransformer
+from sklearn.pipeline import Pipeline
+from sklearn.impute import SimpleImputer
+from sklearn.preprocessing import OneHotEncoder, StandardScaler
+from sklearn.linear_model import LogisticRegression
+from sklearn.metrics import accuracy_score
+
 
 # Load dataset
 df = sns.load_dataset("titanic")
 
-# Remove unnecessary columns
+
+# Remove unnecessary / leakage columns
 df = df.drop(["deck", "alive"], axis=1)
 
-# Missing values
-df["age"] = df["age"].fillna(df["age"].median())
-df["embarked"] = df["embarked"].fillna(df["embarked"].mode()[0])
-df["embark_town"] = df["embark_town"].fillna(
-    df["embark_town"].mode()[0]
-)
 
 # Features and target
-y = df["survived"]
 X = df.drop("survived", axis=1)
+y = df["survived"]
 
-# Encoding
-X = pd.get_dummies(X, drop_first=True)
+
+# Numerical columns
+numeric_features = [
+    "age",
+    "fare",
+    "sibsp",
+    "parch"
+]
+
+
+# Categorical columns
+categorical_features = [
+    "sex",
+    "embarked",
+    "class",
+    "who",
+    "adult_male",
+    "embark_town",
+    "alone"
+]
+
+
+# Numerical preprocessing
+numeric_pipeline = Pipeline([
+    ("imputer", SimpleImputer(strategy="median")),
+    ("scaler", StandardScaler())
+])
+
+
+# Categorical preprocessing
+categorical_pipeline = Pipeline([
+    ("imputer", SimpleImputer(strategy="most_frequent")),
+    ("encoder", OneHotEncoder(handle_unknown="ignore"))
+])
+
+
+# Combine preprocessing
+preprocessor = ColumnTransformer([
+    ("num", numeric_pipeline, numeric_features),
+    ("cat", categorical_pipeline, categorical_features)
+])
+
+
+# Complete ML pipeline
+model = Pipeline([
+    ("preprocessor", preprocessor),
+    ("classifier", LogisticRegression(max_iter=1000))
+])
+
 
 # Train/test split
 X_train, X_test, y_train, y_test = train_test_split(
@@ -35,12 +80,15 @@ X_train, X_test, y_train, y_test = train_test_split(
 )
 
 
-model = Pipeline([
-    ("scaler", StandardScaler()),
-    ("classifier", LogisticRegression())
-])
-
+# Train
 model.fit(X_train, y_train)
+
+
+# Predict
 prediction = model.predict(X_test)
 
-print("Predicition:", prediction)
+
+# Evaluate
+accuracy = accuracy_score(y_test, prediction)
+
+print("Accuracy:", accuracy)
